@@ -1,0 +1,38 @@
+<editors>
+  <editor id="CTR_LOGLEVEL">
+    <range uom="25" subset="0,10,20,30,40,50" nls="IX_CTR_LL" />
+  </editor>
+  <editor id="SYS_OPMODE">
+    <range uom="25" subset="0-3" nls="IX_SYS_OPMODE" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="SYS_SALINITY">
+    <range uom="54" prec="0" nls="IX_SYS_GV" /> <!-- ISY PPM UOM -->
+  </editor>
+  <editor id="SYS_ORP">
+    <range uom="43" prec="0" nls="IX_SYS_GV" /> <!-- ISY Milivolt UOM -->
+  </editor>
+  <editor id="SYS_PH">
+    <range uom="56" min="0" max="14" prec="1" nls="IX_SYS_GV" /> <!-- ISY Raw UOM -->
+  </editor>
+  <editor id="DEV_ST">
+    <range uom="25" subset="0,1,3" nls="IX_DEV_ST" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="DIM_ST">
+    <range uom="51" subset="0, 25, 50, 75, 100" nls="IX_DIM_ST" />
+  </editor>
+  <editor id="CLR_EFFECT">
+    <range uom="25" subset="1-11,21-29,61-74,81-92,101-117" nls="IX_CLR_EFF" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="TMP_F_SETPOINT">
+    <range uom="17" min="34" max="104" step="1" prec="0" /> <!-- ISY Farenheit UOM with Jandy/Zodiac Aqualink limits for setpoints-->
+  </editor>
+  <editor id="TMP_C_SETPOINT">
+    <range uom="4" min="1" max="40" step="1" prec="0" /> <!-- ISY Celcius UOM with Jandy/Zodiac Aqualink limits for setpoints -->
+  </editor>
+  <editor id="TMP_MODE">
+    <range uom="67" subset="0,1" /> <!-- ISY Thermostat mode UOM limited to "Off" and "Heat" -->
+  </editor>
+  <editor id="TMP_HCS">
+    <range uom="66" subset="0,1" /> <!-- ISY Thermostat heat/cool state UOM limited to "Idle" and "Heating" -->
+  </editor>
+</editors>

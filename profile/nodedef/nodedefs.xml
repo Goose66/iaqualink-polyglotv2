@@ -1,0 +1,116 @@
+<nodeDefs>
+  <nodeDef id="CONTROLLER" nls="CTR">
+    <editors />
+    <sts>
+      <st id="ST" editor="_2_0" /> <!-- ISY Bool UOM -->
+      <st id="GV20" editor="CTR_LOGLEVEL" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DISCOVER" />
+        <cmd id="UPDATE_PROFILE" />
+        <cmd id="SET_LOGLEVEL">
+          <p id="" editor="CTR_LOGLEVEL" init="GV20" />
+        </cmd>          
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="SYSTEM" nls="SYS">
+    <sts>
+      <st id="ST" editor="_2_0" /> <!-- ISY Bool UOM -->
+      <st id="GV0" editor="SYS_OPMODE" />  <!--Operating Mode: Off, Pool, Spa, ...-->
+      <st id="CLITEMP" editor="_17_0" /> <!--Air Temp-->
+      <st id="GV1" editor="_2_0" /> <!--Freeze Protect Mode-->
+      <st id="GV11" editor="SYS_SALINITY" />   <!--Water salinity-->
+      <st id="GV12" editor="SYS_PH" />   <!--Water PH-->
+      <st id="GV13" editor="SYS_ORP" />   <!--Water ORP-->
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="QUERY" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="DEVICE" nls="DEV">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="DIMMING_LIGHT" nls="DIM">
+    <sts>
+      <st id="ST" editor="DIM_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="DIM_ST" optional="T" init="ST" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />        
+        <cmd id="BRT" />
+        <cmd id="DIM" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="COLOR_LIGHT" nls="CLR">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="CLR_EFFECT" optional="T" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="TEMP_CONTROL" nls="TMP">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+      <st id="CLISPH" editor="TMP_F_SETPOINT" />
+      <st id="CLITEMP" editor="_17_0" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+        <cmd id="SET_SPH">
+          <p id="" editor="TMP_F_SETPOINT" init="CLISPH" />
+        </cmd>
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="TEMP_CONTROL_C" nls="TMP">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+      <st id="CLISPH" editor="TMP_C_SETPOINT" />
+      <st id="CLITEMP" editor="_4_0" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON" />
+        <cmd id="DOF" />
+        <cmd id="SET_SPH">
+          <p id="" editor="TMP_C_SETPOINT" init="CLISPH" />
+        </cmd>
+      </accepts>
+    </cmds>
+  </nodeDef>
+</nodeDefs>
