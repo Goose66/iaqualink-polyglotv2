@@ -20,7 +20,7 @@ Custom Configuration Parameters:
 ```
 5. Once the "iAquaLink NodeServer" node appears in ISY994i Adminstative Console, click "Discover Devices" to load nodes for each of the system devices and aux relays on the pool controller(s) in your profile. THIS PROCESS MAY TAKE SEVERAL SECONDS depending on the number of systems you have and the activity on the iAqauLink service, so please be patient and wait 30 seconds or more before retrying. Also, please check the Polyglot Dashboard for messages regarding Discover Devices failure conditions.
 
-###Notes:
+### Notes:
 
 1. The nodeserver relies on polling of the iAquaLink service and toggling of device states. Because of this, the nodeserver must first update the state before peforming any On, Off, etc. commands. Please be patient and provide time (up to shortPoll seconds) for the state change to be reflected before retrying your command.
 
