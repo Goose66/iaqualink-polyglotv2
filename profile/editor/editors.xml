@@ -5,23 +5,38 @@
   <editor id="SYS_OPMODE">
     <range uom="25" subset="0-3" nls="IX_SYS_OPMODE" /> <!-- ISY Index UOM with custom labels in NLS -->
   </editor>
+  <editor id="SYS_TEMP">
+    <range uom="17" min="-20" max="110" prec="0" />
+  </editor>
   <editor id="SYS_SALINITY">
-    <range uom="54" prec="0" nls="IX_SYS_GV" /> <!-- ISY PPM UOM -->
+    <range uom="54" min="2000" max="5000" prec="0" step="100"/> <!-- ISY PPM UOM -->
   </editor>
   <editor id="SYS_ORP">
-    <range uom="43" prec="0" nls="IX_SYS_GV" /> <!-- ISY Milivolt UOM -->
+    <range uom="43" min="100" max="950" prec="0" step="50" /> <!-- ISY Milivolt UOM -->
   </editor>
   <editor id="SYS_PH">
-    <range uom="56" min="0" max="14" prec="1" nls="IX_SYS_GV" /> <!-- ISY Raw UOM -->
+    <range uom="56" min="6.8" max="8.4" prec="1" step="0.1" /> <!-- ISY Raw UOM -->
   </editor>
   <editor id="DEV_ST">
-    <range uom="25" subset="0,1,3" nls="IX_DEV_ST" /> <!-- ISY Index UOM with custom labels in NLS -->
+    <range uom="25" subset="-1,0,1,3" nls="IX_DEV_ST" /> <!-- ISY Index UOM with custom labels in NLS -->
   </editor>
   <editor id="DIM_ST">
     <range uom="51" subset="0, 25, 50, 75, 100" nls="IX_DIM_ST" />
   </editor>
-  <editor id="CLR_EFFECT">
-    <range uom="25" subset="1-11,21-29,61-74,81-92,101-117" nls="IX_CLR_EFF" /> <!-- ISY Index UOM with custom labels in NLS -->
+  <editor id="CLR_EFFECT_JC">
+    <range uom="25" subset="1-11" nls="IX_CLR_JC" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="CLR_EFFECT_SL">
+    <range uom="25" subset="1-9" nls="IX_CLR_SL" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="CLR_EFFECT_JL">
+    <range uom="25" subset="1-14" nls="IX_CLR_JL" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="CLR_EFFECT_IB">
+    <range uom="25" subset="1-12" nls="IX_CLR_IB" /> <!-- ISY Index UOM with custom labels in NLS -->
+  </editor>
+  <editor id="CLR_EFFECT_HU">
+    <range uom="25" subset="1-17" nls="IX_CLR_HU" /> <!-- ISY Index UOM with custom labels in NLS -->
   </editor>
   <editor id="TMP_F_SETPOINT">
     <range uom="17" min="34" max="104" step="1" prec="0" /> <!-- ISY Farenheit UOM with Jandy/Zodiac Aqualink limits for setpoints-->

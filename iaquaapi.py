@@ -7,12 +7,13 @@ by Goose66 (W. Randy King) kingwrandy@gmail.com
 import sys
 import logging 
 import requests
+import time
 
 # Configure a module level logger for module testing
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
+#_LOGGER.setLevel(logging.DEBUG)
 
-# Bond Local REST API v2.9 spec.
+# iAquaLink mobile app REST API
 _API_APP_KEY = "EOOEMOW4YR6QNB07"
 _API_HTTP_HEADERS = {
     "User-Agent": "iAquaLink/70 CFNetwork/901.1 Darwin/17.6.0",
@@ -75,18 +76,26 @@ _SESSION_COMMAND_SET_TEMPS = "set_temps"
 _HTTP_GET_TIMEOUT = 6.05
 _HTTP_POST_TIMEOUT = 4.05
 
+# default session TTL
+_DEFAULT_SESSION_TTL = 3600  # 1 hour
+
 # interface class for a particular Bond Bridge or SBB device
 class iAqualinkConnection(object):
 
     _userID = ""
     _sessionID = ""
     _authToken = ""
+    _userName = ""
+    _password = ""
+    _sessionTTL = 0
+    _lastTokenUpdate = 0
     _iaqualinkSession = None
     _logger = None
 
     # Primary constructor method
-    def __init__(self, logger=_LOGGER):
+    def __init__(self, sessionTTL=_DEFAULT_SESSION_TTL, logger=_LOGGER):
 
+        self._sessionTTL = sessionTTL
         self._logger = logger
 
         # open an HTTP session
@@ -128,6 +137,41 @@ class iAqualinkConnection(object):
 
         return response
 
+    # Update the session ID and authentication tokens if the TTL has expired
+    def _checkTokens(self):
+
+        # check TTL time
+        currentTime = time.time()
+        if currentTime - self._lastTokenUpdate > self._sessionTTL:
+
+            # close the current session and delay for a few seconds
+            self._iaqualinkSession.close()
+            time.sleep(3)
+
+            # format payload
+            payload = {
+                "api_key": _API_APP_KEY,
+                "email": self._userName,
+                "password": self._password,
+            } 
+
+            # call the login API
+            response  = self._call_api(_API_LOGIN, payload=payload)
+        
+            # if data returned, update the access tokens from the response data
+            if response and response.status_code == 200:
+
+                respData = response.json()
+                self._sessionID = respData["session_id"]
+                self._authToken = respData["authentication_token"]
+
+                self._lastTokenUpdate = time.time()
+
+            else:
+                
+                # otherwise just try to keep going with current tokens
+                pass
+
     # Login to the cloud service and retrieve session_id, user_id, and authentication_token
     # to access the remainder of the API
     def loginToService(self, userName, password):
@@ -159,6 +203,11 @@ class iAqualinkConnection(object):
             self._sessionID = respData["session_id"]
             self._authToken = respData["authentication_token"]
             self._userID = respData["id"]
+
+            self._userName = userName
+            self._password = password
+
+            self._lastTokenUpdate = time.time()
 
             return LOGIN_SUCCESS
 
@@ -200,7 +249,7 @@ class iAqualinkConnection(object):
             return False
 
     # Get system state information by serial number
-    def getSystemState(self, serialNum):
+    def getSystemState(self, serialNum, internal=False):
         """Get state information for a specific system (pool controller)
 
         Parameters:
@@ -210,6 +259,10 @@ class iAqualinkConnection(object):
         """
 
         self._logger.debug("in API getSystemStatus()...")
+
+        # check the auth tokens and TTL unless this is a get state call (a non-polling call)
+        if not internal:
+            self._checkTokens()
 
         # format url parameters
         params = {
@@ -233,7 +286,7 @@ class iAqualinkConnection(object):
             return False
 
     # Get device state information for a controller
-    def getDevicesList(self, serialNum):
+    def getDevicesList(self, serialNum, internal=False):
         """Get state information for devices (aux relays) for specific system (pool controller)
 
         Parameters:
@@ -243,6 +296,10 @@ class iAqualinkConnection(object):
         """
 
         self._logger.debug("in API getDevicesList()...")
+
+        # check the auth tokens and TTL unless this is a get state call (a non-polling call)
+        if not internal:
+            self._checkTokens()
 
         # format url parameters
         params = {
@@ -282,7 +339,7 @@ class iAqualinkConnection(object):
         if deviceName in (DEVICE_NAME_PUMP, DEVICE_NAME_SPA, DEVICE_NAME_POOL_HEAT, DEVICE_NAME_SPA_HEAT, DEVICE_NAME_SOLAR_HEAT):
             
             # get the current system state
-            systemState = self.getSystemState(serialNum)
+            systemState = self.getSystemState(serialNum, True)
             
             # return the current state for the device
             if systemState and deviceName in systemState:
@@ -292,7 +349,7 @@ class iAqualinkConnection(object):
 
         else:
             # get the device list with state
-            devices = self.getDevicesList(serialNum)
+            devices = self.getDevicesList(serialNum, True)
 
             # return the current state for the device
             if devices and deviceName in devices:
@@ -325,7 +382,7 @@ class iAqualinkConnection(object):
         elif deviceName == DEVICE_NAME_SOLAR_HEAT:
             command = _SESSION_COMMAND_SET_SOLAR_HEATER
         else:
-            command = _SESSION_COMMAND_SET_AUX + deviceName.lower()
+            command = _SESSION_COMMAND_SET_AUX + deviceName
 
         # format url parameters
         params = {

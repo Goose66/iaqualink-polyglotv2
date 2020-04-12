@@ -1,6 +1,5 @@
 <nodeDefs>
   <nodeDef id="CONTROLLER" nls="CTR">
-    <editors />
     <sts>
       <st id="ST" editor="_2_0" /> <!-- ISY Bool UOM -->
       <st id="GV20" editor="CTR_LOGLEVEL" />
@@ -18,13 +17,13 @@
   </nodeDef>
   <nodeDef id="SYSTEM" nls="SYS">
     <sts>
-      <st id="ST" editor="_2_0" /> <!-- ISY Bool UOM -->
-      <st id="GV0" editor="SYS_OPMODE" />  <!--Operating Mode: Off, Pool, Spa, ...-->
-      <st id="CLITEMP" editor="_17_0" /> <!--Air Temp-->
-      <st id="GV1" editor="_2_0" /> <!--Freeze Protect Mode-->
-      <st id="GV11" editor="SYS_SALINITY" />   <!--Water salinity-->
-      <st id="GV12" editor="SYS_PH" />   <!--Water PH-->
-      <st id="GV13" editor="SYS_ORP" />   <!--Water ORP-->
+      <st id="ST" editor="_2_0" />
+      <st id="GV0" editor="SYS_OPMODE" />
+      <st id="CLITEMP" editor="SYS_TEMP" />
+      <st id="GV1" editor="_2_0" />
+      <st id="GV11" editor="SYS_SALINITY" />
+      <st id="GV12" editor="SYS_PH" />
+      <st id="GV13" editor="SYS_ORP" />
     </sts>
     <cmds>
       <sends />
@@ -63,7 +62,7 @@
       </accepts>
     </cmds>
   </nodeDef>
-  <nodeDef id="COLOR_LIGHT" nls="CLR">
+  <nodeDef id="COLOR_LIGHT_JC" nls="CLR">
     <sts>
       <st id="ST" editor="DEV_ST" />
     </sts>
@@ -71,7 +70,71 @@
       <sends />
       <accepts>
         <cmd id="DON">
-          <p id="" editor="CLR_EFFECT" optional="T" />
+          <p id="" editor="CLR_EFFECT_JC" optional="T" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="COLOR_LIGHT_SL" nls="CLR">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="CLR_EFFECT_SL" optional="T" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="COLOR_LIGHT_JL" nls="CLR">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="CLR_EFFECT_JL" optional="T" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="COLOR_LIGHT_IB" nls="CLR">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="CLR_EFFECT_IB" optional="T" />
+        </cmd>
+        <cmd id="DOF" />
+        <cmd id="DFON" />
+        <cmd id="DFOF" />
+      </accepts>
+    </cmds>
+  </nodeDef>
+  <nodeDef id="COLOR_LIGHT_HU" nls="CLR">
+    <sts>
+      <st id="ST" editor="DEV_ST" />
+    </sts>
+    <cmds>
+      <sends />
+      <accepts>
+        <cmd id="DON">
+          <p id="" editor="CLR_EFFECT_HU" optional="T" />
         </cmd>
         <cmd id="DOF" />
         <cmd id="DFON" />

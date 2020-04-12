@@ -35,6 +35,14 @@ IX_DEV_ST_OFF = 0
 IX_DEV_ST_ON = 1
 IX_DEV_ST_ENABLED = 3
 
+# Color Light Types and node IDs
+DEVICE_COLOR_LIGHT_TYPES = {
+    "1": "COLOR_LIGHT_JC",
+    "2": "COLOR_LIGHT_SL",
+    "4": "COLOR_LIGHT_JL",
+    "5": "COLOR_LIGHT_IB",
+    "6": "COLOR_LIGHT_HU",
+}
 
 # device labels for system-level devices
 # the user can change these in ISY Admin Console, but provide the iAquaLink defaults
@@ -53,9 +61,13 @@ DEVICE_ADDR_POOL_HEAT = "poolht"
 DEVICE_ADDR_SPA_HEAT = "spaht"
 DEVICE_ADDR_SOLAR_HEAT = "solarht"
 
+
 # custom parameter values for this nodeserver
 PARAM_USERNAME = "username"
 PARAM_PASSWORD = "password"
+PARAM_SESSION_TTL = "sessionTTL"
+
+DEFAULT_SESSION_TTL = 43200 # 12 hours
 
 # Node class for devices (pumps and aux relays)
 class Device(polyinterface.Node):
@@ -131,7 +143,7 @@ class Device(polyinterface.Node):
         # Place the controller in active polling mode
         self.controller.setActiveMode()
 
-    drivers = [{"driver": "ST", "value": 0, "uom": ISY_INDEX_UOM}]
+    drivers = [{"driver": "ST", "value": IX_DEV_ST_UNKNOWN, "uom": ISY_INDEX_UOM}]
     commands = {
         "DON": cmd_don,
         "DOF": cmd_dof
@@ -268,15 +280,13 @@ class ColorLight(polyinterface.Node):
     _lightType = ""
 
     def __init__(self, controller, primary, addr, name, deviceName=None, lightType=None):
-        super(ColorLight, self).__init__(controller, primary, addr, name)
     
-        # override the parent node with the system node (defaults to controller)
-        self.parent = self.controller.nodes[self.primary]
-
         if deviceName is None:
     
             # retrieve the deviceName and the tempUnit from polyglot custom data
-            cData = self.controller.getCustomData(addr).split(";")
+            # Note: use controller and addr parameters instead of self.controller and self.address
+            # because parent class init() has not been called yet
+            cData = controller.getCustomData(addr).split(";")
             self.deviceName = cData[0]
             self._lightType = cData[1]
 
@@ -284,9 +294,18 @@ class ColorLight(polyinterface.Node):
             self.deviceName = deviceName
             self._lightType = lightType
 
-            # store instance variables in polyglot custom data
-            cData = ";".join([self.deviceName, self._lightType])
-            self.controller.addCustomData(addr, cData)
+        # determine the proper node ID based on the color light type
+        self.id = DEVICE_COLOR_LIGHT_TYPES.get(self._lightType, "COLOR_LIGHT_JC")
+
+        # Call the parent class init
+        super(ColorLight, self).__init__(controller, primary, addr, name)
+
+        # override the parent node with the system node (defaults to controller)
+        self.parent = self.controller.nodes[self.primary]
+
+        # store instance variables in polyglot custom data
+        cData = ";".join([self.deviceName, self._lightType])
+        self.controller.addCustomData(addr, cData)
 
     # Turn on the device
     def cmd_don(self, command):
@@ -297,8 +316,8 @@ class ColorLight(polyinterface.Node):
         if command.get("value") is None:
             value = "1"
         else:
-            # retrieve the effect parameter value for the command and convert to base range (0-19)
-            value = str(int(command.get("value")) % 20)
+            # retrieve the effect parameter value for the command 
+            value = str(command.get("value"))
 
         # call the set_effect API
         if self.controller.iaConn.setLightEffect(self.parent.serialNum, self.deviceName, value, self._lightType):
@@ -329,7 +348,7 @@ class ColorLight(polyinterface.Node):
         # Place the controller in active polling mode
         self.controller.setActiveMode()
 
-    drivers = [{"driver": "ST", "value": -1, "uom": ISY_INDEX_UOM}]
+    drivers = [{"driver": "ST", "value": IX_DEV_ST_UNKNOWN, "uom": ISY_INDEX_UOM}]
     commands = {
         "DON": cmd_don,
         "DOF": cmd_dof,
@@ -347,29 +366,32 @@ class TempControl(polyinterface.Node):
     
     # Override init to handle temp units
     def __init__(self, controller, primary, addr, name, deviceName=None, tempUnit=None):
-        super(TempControl, self).__init__(controller, primary, addr, name)
-
-        # override the parent node with the system node (defaults to controller)
-        self.parent = self.controller.nodes[self.primary]
 
         if deviceName is None:
     
             # retrieve the deviceName and the tempUnit from polyglot custom data
-            cData = self.controller.getCustomData(addr).split(";")
+            # Note: use controller and addr parameters instead of self.controller and self.address
+            # because parent class init() has not been called yet
+            cData = controller.getCustomData(addr).split(";")
             self.deviceName = cData[0]
             self._tempUnit = cData[1]
 
         else:
             self.deviceName = deviceName
             self._tempUnit = tempUnit
-
-            # store instance variables in polyglot custom data
-            cData = ";".join([self.deviceName, self._tempUnit])
-            self.controller.addCustomData(addr, cData)
         
         # setup the temperature unit for the node
         self.setTempUnit(self._tempUnit)
 
+        # Call the parent class init
+        super(TempControl, self).__init__(controller, primary, addr, name)
+
+        # override the parent node with the system node (defaults to controller)
+        self.parent = self.controller.nodes[self.primary]
+
+        # store instance variables in polyglot custom data
+        cData = ";".join([self.deviceName, self._tempUnit])
+        self.controller.addCustomData(self.address, cData)
 
     # Setup the termostat node for the correct temperature unit (F or C)
     def setTempUnit(self, tempUnit):
@@ -386,12 +408,6 @@ class TempControl(polyinterface.Node):
         for driver in self.drivers:
             if driver["driver"] in ("CLISPH", "CLITEMP"):
                 driver["uom"] = ISY_TEMP_C_UOM if tempUnit == "C" else ISY_TEMP_F_UOM
-
-        self._tempUnit = tempUnit
-
-        # store instance variables in polyglot custom data
-        cData = ";".join([self.deviceName, self._tempUnit])
-        self.controller.addCustomData(self.address, cData)
 
     # Turn on the heater
     def cmd_don(self, command):
@@ -470,7 +486,7 @@ class TempControl(polyinterface.Node):
         self.controller.setActiveMode()
 
     drivers = [
-        {"driver": "ST", "value":0, "uom": ISY_INDEX_UOM},
+        {"driver": "ST", "value": IX_DEV_ST_UNKNOWN, "uom": ISY_INDEX_UOM},
         {"driver": "CLITEMP", "value": 0, "uom": ISY_TEMP_F_UOM},
         {"driver": "CLISPH", "value": 0, "uom": ISY_TEMP_F_UOM}
     ]
@@ -734,8 +750,10 @@ class System(polyinterface.Node):
                                 node.setDriver("ST", int(devices[node.deviceName]["subtype"]), True, forceReport)
                             else:
                                 node.setDriver("ST", translateState(devices[node.deviceName]["state"]), True, forceReport)
-                        else:
+                        elif devices: # Don't change to UNKNOWN state unless device statuses were returned successfully but the node is not in the list
                             node.setDriver("ST", IX_DEV_ST_UNKNOWN, True, forceReport)
+                        else:
+                            pass # Just leave the state alone if no device statuses were retrieved
 
     drivers = [
         {"driver": "ST", "value": 0, "uom": ISY_BOOL_UOM},
@@ -795,8 +813,14 @@ class Controller(polyinterface.Controller):
             self.addCustomParam({PARAM_USERNAME: "<email address>", PARAM_PASSWORD: "<password>"})
             return
 
+        # get session TTL, if in the custom parameters 
+        if PARAM_SESSION_TTL in customParams:
+            sessionTTL = int(customParams[PARAM_SESSION_TTL])
+        else:
+            sessionTTL = DEFAULT_SESSION_TTL
+
         # create a connection to the iAqualink cloud service
-        conn = api.iAqualinkConnection(LOGGER)
+        conn = api.iAqualinkConnection(sessionTTL=sessionTTL, logger=LOGGER)
 
         # login using the provided credentials
         rc = conn.loginToService(userName, password)
@@ -822,7 +846,7 @@ class Controller(polyinterface.Controller):
         # second pass for device nodes
         for addr in self._nodes:         
             node = self._nodes[addr]    
-            if node["node_def_id"] not in ("CONTROLLER", "BRIDGE"):
+            if node["node_def_id"] not in ("CONTROLLER", "SYSTEM"):
 
                 LOGGER.info("Adding previously saved node - addr: %s, name: %s, type: %s", addr, node["name"], node["node_def_id"])
 
@@ -831,7 +855,7 @@ class Controller(polyinterface.Controller):
                     self.addNode(Device(self, node["primary"], addr, node["name"]))
                 elif node["node_def_id"] == "DIMMING_LIGHT":
                     self.addNode(DimmingLight(self, node["primary"], addr, node["name"]))
-                elif node["node_def_id"] == "COLOR_LIGHT":
+                elif node["node_def_id"] in DEVICE_COLOR_LIGHT_TYPES.values():
                     self.addNode(ColorLight(self, node["primary"], addr, node["name"]))
                 elif node["node_def_id"] in ("TEMP_CONTROL", "TEMP_CONTROL_C"):
                     self.addNode(TempControl(self, node["primary"], addr, node["name"]))
