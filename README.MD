@@ -3,25 +3,23 @@ A NodeServer for Polyglot v2 that interfaces to the iAquaLink™ cloud service t
 
 ### Instructions for local Polyglot-V2 installation:
 
+From the Polyglot Dashboard:
 1. Install the iAquaLink nodeserver from the Polyglot Nodeserver Store.
-2. Log into the Polyglot Dashboard (https://<Polyglot Server IP Address>:3000)
-3. Add the iAquaLink nodeserver as a Local (Co-Resident with Polyglot) nodeserver type.
-4. Modify the following Configuration Parameters:
+2. Add the iAquaLink nodeserver as a Local (Co-Resident with Polyglot) nodeserver type.
+3. Modify the following Configuration Parameters:
 
-Advanced Configuration:
-```
-    key: shortPoll, value: polling interval for iAquaLink cloud service in "active" polling mode (defaults to 15 seconds - better to not go more frequent than this).
-    key: longPoll, value: polling interval for iAquaLink cloud service when not in "active" polling mode (defaults to 180 seconds).
-```
-Custom Configuration Parameters:
-```
-    key: username, value: username (email address) for logging into the iAquaLink service (required).
-    key: password, value: password for logging into the iAquaLink service (required).
-    key: sessionTTL, value: number of seconds that the session ID is refreshed in order to avoid timeout (optional - defaults to 43200 (12 hours))
-```
-5. Once the "iAquaLink NodeServer" node appears in ISY994i Adminstative Console, click "Discover Devices" to load nodes for each of the system devices and aux relays on the pool controller(s) in your profile. THIS PROCESS MAY TAKE SEVERAL SECONDS depending on the number of systems you have and the activity on the iAqauLink service, so please be patient and wait 30 seconds or more before retrying. Also, please check the Polyglot Dashboard for messages regarding Discover Devices failure conditions.
+    ##### Advanced Configuration:
+    - key: shortPoll, value: polling interval for iAquaLink cloud service in "active" polling mode (defaults to 15 seconds - better to not go more frequent than this).
+    - key: longPoll, value: polling interval for iAquaLink cloud service when not in "active" polling mode (defaults to 180 seconds).
 
-###Notes:
+    ##### Custom Configuration Parameters:
+    - key: username, value: username (email address) for logging into the iAquaLink service (required).
+    - key: password, value: password for logging into the iAquaLink service (required).
+    - key: sessionTTL, value: number of seconds that the session ID is refreshed in order to avoid timeout (optional - defaults to 43200 (12 hours))
+
+4. Once the "iAquaLink NodeServer" node appears in ISY994i Adminisrative Console, click "Discover Devices" to load nodes for each of the system devices and aux relays on the pool controller(s) in your profile. THIS PROCESS MAY TAKE SEVERAL SECONDS depending on the number of systems you have and the activity on the iAqauLink service, so please be patient and wait 30 seconds or more before retrying. Also, please check the Polyglot Dashboard for messages regarding Discover Devices failure conditions.
+
+### Notes:
 
 1. The nodeserver relies on polling of the iAquaLink service and toggling of device states. Because of this, the nodeserver must first update the state before peforming any On, Off, etc. commands. Please be patient and provide time (up to shortPoll seconds) for the state change to be reflected before retrying your command.
 2. If you change the setup on your AquaLink (temperature unit, type of devices assigned to the AUX relays, etc.), you must delete all the nodes EXCEPT the iAquaLink Nodeserver node from the Polyglot Dashboard (not the ISY), restart the nodeserver, and perform the "Discover Devices" procedure again.
