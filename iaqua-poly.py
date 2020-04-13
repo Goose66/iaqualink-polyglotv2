@@ -3,12 +3,15 @@
 Polglot v2 NodeServer for iAquaLink 2.0 Pool Control Service  
 by Goose66 (W. Randy King) kingwrandy@gmail.com
 """
+try:
+    import polyinterface
+except ImportError:
+    import pgc_interface as polyinterface
 import sys
 import re
 import time
 from math import ceil
 import iaquaapi as api
-import polyinterface
 
 LOGGER = polyinterface.LOGGER
 
