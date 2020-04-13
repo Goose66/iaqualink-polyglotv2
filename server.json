@@ -4,7 +4,7 @@
     "type": "python3",
     "executable": "iaqua-poly.py",
     "install": "install.sh",
-    "install_cloud": "insall_cloud.sh",
+    "install_cloud": "install_cloud.sh",
     "description": "Control yout Jandy® AquaLink® pool controllers and accessories through the iAquaLink™ cloud service.",
     "notice": "",
     "shortPoll": "15",
@@ -15,8 +15,8 @@
         {
            "title": "iaqua-poly: a Polyglot NodeServer for iAquaLink™ cloud service.",
            "author": "W. Randy King (Goose66)",
-           "version": "0.2.1",
-           "date": "April 9, 2020",
+           "version": "0.2.2",
+           "date": "April 13, 2020",
            "source": "https://github.com/Goose66/iaqualink-polyglotv2",
            "license": "https://github.com/Goose66/iaqualink-polyglotv2/master/LICENSE"
        }
