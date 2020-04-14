@@ -15,7 +15,7 @@
         {
            "title": "iaqua-poly: a Polyglot NodeServer for iAquaLink™ cloud service.",
            "author": "W. Randy King (Goose66)",
-           "version": "0.2.3",
+           "version": "0.2.4",
            "date": "April 13, 2020",
            "source": "https://github.com/Goose66/iaqualink-polyglotv2",
            "license": "https://github.com/Goose66/iaqualink-polyglotv2/master/LICENSE"

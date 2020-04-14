@@ -794,13 +794,13 @@ class Controller(polyinterface.Controller):
 
         LOGGER.info("Started iAquaLink nodeserver...")
 
-        # set the logger level from the previous set level
-        level = self.getDriver("GV20")
-        if level is not None:
-            LOGGER.setLevel(int(level))
-        
         # load custom data from polyglot
         self._customData = self.polyConfig["customData"]
+        
+        # If a logger level was stored for the controller, then use to set the logger level
+        level = self.getCustomData("loggerlevel")
+        if level is not None:
+            LOGGER.setLevel(int(level))
         
         # remove all existing notices for the nodeserver
         self.removeNoticesAll()
@@ -817,10 +817,7 @@ class Controller(polyinterface.Controller):
             return
 
         # get session TTL, if in the custom parameters 
-        if PARAM_SESSION_TTL in customParams:
-            sessionTTL = int(customParams[PARAM_SESSION_TTL])
-        else:
-            sessionTTL = DEFAULT_SESSION_TTL
+        sessionTTL = int(customParams.get(PARAM_SESSION_TTL, DEFAULT_SESSION_TTL))
 
         # create a connection to the iAqualink cloud service
         conn = api.iAqualinkConnection(sessionTTL=sessionTTL, logger=LOGGER)
@@ -911,6 +908,10 @@ class Controller(polyinterface.Controller):
         # set the current logging level
         LOGGER.setLevel(value)
 
+        # store the new loger level in custom data
+        self.addCustomData("loggerlevel", value)
+        self.saveCustomData(self._customData)
+        
         # update the state driver to the level set
         self.setDriver("GV20", value)
 
@@ -997,7 +998,7 @@ class Controller(polyinterface.Controller):
     def getCustomData(self, key):
 
         # return data from custom data for key
-        return self._customData[key]
+        return self._customData.get(key)
         
     drivers = [
         {"driver": "ST", "value": 0, "uom": ISY_BOOL_UOM},
