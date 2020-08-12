@@ -11,7 +11,7 @@ import time
 
 # Configure a module level logger for module testing
 _LOGGER = logging.getLogger(__name__)
-#_LOGGER.setLevel(logging.DEBUG)
+_LOGGER.setLevel(logging.DEBUG)
 
 # iAquaLink mobile app REST API
 _API_APP_KEY = "EOOEMOW4YR6QNB07"
@@ -127,7 +127,7 @@ class iAqualinkConnection(object):
         # Allow timeout and connection errors to be ignored - log and return false
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
             self._logger.warning("HTTP %s in _call_api() failed: %s", method, str(e))
-            return False
+            return None
         except:
             self._logger.error("Unexpected error occured: %s", sys.exc_info()[0])
             raise
@@ -146,7 +146,7 @@ class iAqualinkConnection(object):
 
             # close the current session and delay for a few seconds
             self._iaqualinkSession.close()
-            time.sleep(3)
+            time.sleep(2)
 
             # format payload
             payload = {
@@ -159,17 +159,24 @@ class iAqualinkConnection(object):
             response  = self._call_api(_API_LOGIN, payload=payload)
         
             # if data returned, update the access tokens from the response data
-            if response and response.status_code == 200:
+            if response is not None:
 
                 respData = response.json()
-                self._sessionID = respData["session_id"]
-                self._authToken = respData["authentication_token"]
 
-                self._lastTokenUpdate = time.time()
+                if response.statu_code == 200:
+
+                    self._sessionID = respData["session_id"]
+                    self._authToken = respData["authentication_token"]
+
+                    self._lastTokenUpdate = time.time()
+                
+                else:
+                    # otherwise just log it and try to keep going with current tokens
+                    self._logger.error("Error retrieving security token: %d - %s", respData.get("code"), respData.get("description"))
 
             else:
                 
-                # otherwise just try to keep going with current tokens
+                # logged in _call_api()
                 pass
 
     # Login to the cloud service and retrieve session_id, user_id, and authentication_token
@@ -197,24 +204,32 @@ class iAqualinkConnection(object):
         response  = self._call_api(_API_LOGIN, payload=payload)
         
         # if data returned, parse the access tokens and store in the instance variables
-        if response and response.status_code == 200:
-
+        if response is not None:
+            
             respData = response.json()
-            self._sessionID = respData["session_id"]
-            self._authToken = respData["authentication_token"]
-            self._userID = respData["id"]
+            
+            if response.status_code == 200:
 
-            self._userName = userName
-            self._password = password
+                self._sessionID = respData["session_id"]
+                self._authToken = respData["authentication_token"]
+                self._userID = respData["id"]
 
-            self._lastTokenUpdate = time.time()
+                self._userName = userName
+                self._password = password
 
-            return LOGIN_SUCCESS
+                self._lastTokenUpdate = time.time()
 
-        # check for authentication error (bad credentials)
-        elif response.status_code == 401:
+                return LOGIN_SUCCESS
 
-            return LOGIN_BAD_AUTHENTICATION
+
+            # check for authentication error (bad credentials)
+            elif response.status_code == 401:
+
+                return LOGIN_BAD_AUTHENTICATION
+
+            else:
+                self._logger.warning("Authentication error logging into MyQ service: %d - %s", respData.get("code"), respData.get("description"))
+                return LOGIN_ERROR
 
         else:
             return LOGIN_ERROR
@@ -240,7 +255,7 @@ class iAqualinkConnection(object):
         response  = self._call_api(_API_SYSTEMS, params=params)
         
         # if data was returned, return the systems list
-        if response and response.status_code == 200:
+        if response is not None and response.status_code == 200:
 
             return response.json()
 
@@ -318,7 +333,7 @@ class iAqualinkConnection(object):
             respData = response.json()           
             return self._buildDevicesState(respData)
 
-        # otherwise return empty dictionary
+        # otherwise return empty dictionary (evaluates to false)
         else:
             return {}
 
@@ -395,25 +410,13 @@ class iAqualinkConnection(object):
         # call the session API with the parameters
         response  = self._call_api(_API_SESSION, params=params)
         
-        # the home screen or device screen data is returned. Use it to 
-        # retrieve and return the new state of the device.
-        # Note: may be some latency in the status changing so don't know how useful this is
+        # too much latency in the status change to return the new state, so just ignore 
         if response and response.status_code == 200:
 
-            respData = response.json()
-            if "home_screen" in respData:
-                systemState =self._buildSystemState(respData)
-                return systemState[deviceName]
-            else:
-                devices = self._buildDevicesState(respData)
-                if deviceName in devices:
-                    return devices[deviceName]["state"]
-                else:
-                    return "" # Unknown
+            return True
 
-        # otherwise return unknown state to indicate failure - evaluates to False in if statement
         else:
-            return "" # Unknown
+            return False
             
     # Set the temp setpoints for the pool and spa
     def setTemps(self, serialNum, temp1=None, temp2=None):
@@ -446,12 +449,9 @@ class iAqualinkConnection(object):
         # call the session API with the parameters
         response  = self._call_api(_API_SESSION, params=params)
         
-        # the home screen data is returned - don't waste it
-        # format the system state and return
         if response and response.status_code == 200:
 
-            respData = response.json()
-            return self._buildSystemState(respData)
+            return True
 
         # otherwise return error (False)
         else:
@@ -487,12 +487,9 @@ class iAqualinkConnection(object):
         # call the session API with the parameters
         response  = self._call_api(_API_SESSION, params=params)
         
-        # the home screen data is returned - don't waste it
-        # format the system state and return
         if response and response.status_code == 200:
 
-            respData = response.json()
-            return self._buildDevicesState(respData)
+            return True
 
         # otherwise return error (False)
         else:
@@ -530,12 +527,9 @@ class iAqualinkConnection(object):
         # call the session API with the parameters
         response  = self._call_api(_API_SESSION, params=params)
         
-        # the home screen data is returned - don't waste it
-        # format the system state and return
         if response and response.status_code == 200:
 
-            respData = response.json()
-            return self._buildDevicesState(respData)
+            return True
 
         # otherwise return error (False)
         else:

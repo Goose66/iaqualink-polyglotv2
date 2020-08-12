@@ -3,10 +3,12 @@
 Polglot v2 NodeServer for iAquaLink 2.0 Pool Control Service  
 by Goose66 (W. Randy King) kingwrandy@gmail.com
 """
+PGC = False
 try:
     import polyinterface
 except ImportError:
     import pgc_interface as polyinterface
+    PGC = True
 import sys
 import re
 import time
@@ -64,13 +66,18 @@ DEVICE_ADDR_POOL_HEAT = "poolht"
 DEVICE_ADDR_SPA_HEAT = "spaht"
 DEVICE_ADDR_SOLAR_HEAT = "solarht"
 
-
 # custom parameter values for this nodeserver
 PARAM_USERNAME = "username"
 PARAM_PASSWORD = "password"
 PARAM_SESSION_TTL = "sessionTTL"
 
 DEFAULT_SESSION_TTL = 43200 # 12 hours
+
+# account for PGC 
+if PGC:
+    NODE_DEF_ID_KEY = "nodedefid"
+else:
+    NODE_DEF_ID_KEY = "node_def_id"
 
 # Node class for devices (pumps and aux relays)
 class Device(polyinterface.Node):
@@ -812,8 +819,9 @@ class Controller(polyinterface.Controller):
             password = customParams[PARAM_PASSWORD]
         except KeyError:
             LOGGER.warning("Missing iAquaLink service credentials in configuration.")
-            self.addNotice("The iAquaLink service credentials are missing in the configuration. Please check that both the 'username' and 'password' parameter values are specified in the Custom Configuration Parameters and restart the nodeserver.")
+            self.addNotice({"missing_creds": "The iAquaLink service credentials are missing in the configuration. Please check that both the 'username' and 'password' parameter values are specified in the Custom Configuration Parameters and restart the nodeserver."})
             self.addCustomParam({PARAM_USERNAME: "<email address>", PARAM_PASSWORD: "<password>"})
+            self.poly.stop() 
             return
 
         # get session TTL, if in the custom parameters 
@@ -826,10 +834,13 @@ class Controller(polyinterface.Controller):
         rc = conn.loginToService(userName, password)
         if rc == api.LOGIN_BAD_AUTHENTICATION:
             LOGGER.warning("Bad username or password specified.")
-            self.addNotice("Could not login to the iAquaLink service with the specified credentials. Please check the 'username' and 'password' parameter values in the Custom Configuration Parameters and restart the nodeserver.")
+            self.addNotice({"bad_auth": "Could not login to the iAquaLink service with the specified credentials. Please check the 'username' and 'password' parameter values in the Custom Configuration Parameters and restart the nodeserver."})
+            self.poly.stop() 
             return
         elif rc == api.LOGIN_ERROR:
+            self.addNotice({"login_error":"There was an error connecting to the iAquaLink service. Please check the log files and correct the issue before restarting the nodeserver."})
             LOGGER.error("Error logging into iAquaLink service.")
+            self.poly.stop() 
             return
 
         # load nodes previously saved to the polyglot database
@@ -838,26 +849,26 @@ class Controller(polyinterface.Controller):
         # first pass for system nodes
         for addr in self._nodes:           
             node = self._nodes[addr]
-            if node["node_def_id"] == "SYSTEM":
+            if node[NODE_DEF_ID_KEY] == "SYSTEM":
                 
-                LOGGER.info("Adding previously saved node - addr: %s, name: %s, type: %s", addr, node["name"], node["node_def_id"])
+                LOGGER.info("Adding previously saved node - addr: %s, name: %s, type: %s", addr, node["name"], node[NODE_DEF_ID_KEY])
                 self.addNode(System(self, node["primary"], addr, node["name"]))
 
         # second pass for device nodes
         for addr in self._nodes:         
             node = self._nodes[addr]    
-            if node["node_def_id"] not in ("CONTROLLER", "SYSTEM"):
+            if node[NODE_DEF_ID_KEY] not in ("CONTROLLER", "SYSTEM"):
 
-                LOGGER.info("Adding previously saved node - addr: %s, name: %s, type: %s", addr, node["name"], node["node_def_id"])
+                LOGGER.info("Adding previously saved node - addr: %s, name: %s, type: %s", addr, node["name"], node[NODE_DEF_ID_KEY])
 
                 # add device and temperature controller nodes
-                if node["node_def_id"] == "DEVICE":
+                if node[NODE_DEF_ID_KEY] == "DEVICE":
                     self.addNode(Device(self, node["primary"], addr, node["name"]))
-                elif node["node_def_id"] == "DIMMING_LIGHT":
+                elif node[NODE_DEF_ID_KEY] == "DIMMING_LIGHT":
                     self.addNode(DimmingLight(self, node["primary"], addr, node["name"]))
-                elif node["node_def_id"] in DEVICE_COLOR_LIGHT_TYPES.values():
+                elif node[NODE_DEF_ID_KEY] in DEVICE_COLOR_LIGHT_TYPES.values():
                     self.addNode(ColorLight(self, node["primary"], addr, node["name"]))
-                elif node["node_def_id"] in ("TEMP_CONTROL", "TEMP_CONTROL_C"):
+                elif node[NODE_DEF_ID_KEY] in ("TEMP_CONTROL", "TEMP_CONTROL_C"):
                     self.addNode(TempControl(self, node["primary"], addr, node["name"]))
 
         # set the object level connection variable
