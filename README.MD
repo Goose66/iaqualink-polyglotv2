@@ -17,7 +17,8 @@ From the Polyglot Dashboard:
     - key: password, value: password for logging into the iAquaLink service (required).
     - key: sessionTTL, value: number of seconds that the session ID is refreshed in order to avoid timeout (optional - defaults to 43200 (12 hours))
 
-4. Once the "iAquaLink NodeServer" node appears in ISY994i Adminisrative Console, click "Discover Devices" to load nodes for each of the system devices and aux relays on the pool controller(s) in your profile. THIS PROCESS MAY TAKE SEVERAL SECONDS depending on the number of systems you have and the activity on the iAqauLink service, so please be patient and wait 30 seconds or more before retrying. Also, please check the Polyglot Dashboard for messages regarding Discover Devices failure conditions.
+4. Start (Restart) the iAqualink nodeserver from the Polyglot Dashboard
+5. Once the "iAquaLink NodeServer" node appears in ISY994i Adminisrative Console, click "Discover Devices" to load nodes for each of the system devices and aux relays in the pool controller(s) in your profile. THIS PROCESS MAY TAKE SEVERAL SECONDS depending on the number of systems you have and the activity on the iAqauLink service, so please be patient and wait 30 seconds or more before retrying. Also, please check the Polyglot Dashboard for messages regarding Discover Devices failure conditions.
 
 ### Notes:
 
