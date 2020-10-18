@@ -50,6 +50,10 @@ WATER_PH_FACTOR = 0.1 # pH number
 WATER_SALINITY_FACTOR = 50 # PPM
 WATER_ORP_FACTOR = 10 # mV
 
+# values for "temp_scale" property
+TEMP_SCALE_F = "F"
+TEMP_SCALE_C = "C"
+
 # values for device state from iAquaLink
 DEVICE_STATE_OFF = "0"
 DEVICE_STATE_ON = "1"

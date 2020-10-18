@@ -23,7 +23,7 @@ From the Polyglot Dashboard:
 ### Notes:
 
 1. The nodeserver relies on polling of the iAquaLink service and toggling of device states. Because of this, the nodeserver must first update the state before peforming any On, Off, etc. commands. Please be patient and provide time (up to shortPoll seconds) for the state change to be reflected before retrying your command.
-2. If you change the setup on your AquaLink (temperature unit, type of devices assigned to the AUX relays, etc.), you must delete all the nodes EXCEPT the iAquaLink Nodeserver node from the Polyglot Dashboard (not the ISY), restart the nodeserver, and perform the "Discover Devices" procedure again.
+2. If you change the setup on your AquaLink (temperature unit, type of lights or devices assigned to the AUX relays, etc.), you must delete all the nodes EXCEPT the iAquaLink Nodeserver node from the Polyglot Dashboard (not the ISY), restart the nodeserver, and perform the "Discover Devices" procedure again.
 3. After adding all the nodes from "Discover Devices," the node states in the ISY Admin Console will all display with default or "N/A" values. The intial values should be retrieved at the next polling of the iAqualink service. However, depending on timing, the initial state value messages for the new nodes may arrive before the Admin Console has added the nodes, in which case the values will be lost and subsequent polls will not update the values. In that case, to get the initial values for the node states, use the "Update States" for each Aqualink Controller node to retrieve the latest state values for that controller.
 
 For more information regarding this Polyglot Nodeserver, see https://forum.universal-devices.com/topic/29262-polyglot-iaqualink-nodeserver/.

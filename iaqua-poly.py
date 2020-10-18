@@ -372,52 +372,32 @@ class TempControl(polyinterface.Node):
     id = "TEMP_CONTROL"
     hint = [0x01, 0x0C, 0x01, 0x00] # Residential/HVAC/Thermostat
     deviceName = ""
-    _tempUnit = "F"
-    
+
     # Override init to handle temp units
-    def __init__(self, controller, primary, addr, name, deviceName=None, tempUnit=None):
-
-        if deviceName is None:
-    
-            # retrieve the deviceName and the tempUnit from polyglot custom data
-            # Note: use controller and addr parameters instead of self.controller and self.address
-            # because parent class init() has not been called yet
-            cData = controller.getCustomData(addr).split(";")
-            self.deviceName = cData[0]
-            self._tempUnit = cData[1]
-
-        else:
-            self.deviceName = deviceName
-            self._tempUnit = tempUnit
-        
-        # setup the temperature unit for the node
-        self.setTempUnit(self._tempUnit)
-
-        # Call the parent class init
+    def __init__(self, controller, primary, addr, name, deviceName=None):
         super(TempControl, self).__init__(controller, primary, addr, name)
 
         # override the parent node with the system node (defaults to controller)
-        self.parent = self.controller.nodes[self.primary]
+        self.parent = controller.nodes[primary]
 
-        # store instance variables in polyglot custom data
-        cData = ";".join([self.deviceName, self._tempUnit])
-        self.controller.addCustomData(self.address, cData)
+        if deviceName is None:
+    
+            # retrieve the deviceName from polyglot custom data
+            cData = controller.getCustomData(addr)
+            self.deviceName = cData
 
-    # Setup the termostat node for the correct temperature unit (F or C)
-    def setTempUnit(self, tempUnit):
-        
-        # set the id of the node for the ISY to use from the nodedef
-        # this is so the editor (range) for the setpoint is correct
-        if tempUnit == "C":
+        else:
+            self.deviceName = deviceName
+
+            # store instance variables in polyglot custom data
+            cData = self.deviceName
+            controller.addCustomData(addr, cData)         
+
+        # setup the temperature unit for the node based on the tempo UOM of the parent system
+        if self.parent.tempUOM == ISY_TEMP_C_UOM:
             self.id = "TEMP_CONTROL_C"
         else:
             self.id = "TEMP_CONTROL"
-            
-        # update the drivers in the node to the correct UOM
-        # this is so the numbers show up in the Admin Console with the right unit
-        for driver in self.drivers:
-            if driver["driver"] in ("CLISPH", "CLITEMP"):
-                driver["uom"] = ISY_TEMP_C_UOM if tempUnit == "C" else ISY_TEMP_F_UOM
 
     # Turn on the heater
     def cmd_don(self, command):
@@ -487,7 +467,7 @@ class TempControl(polyinterface.Node):
         if self.controller.iaConn.setTemps(self.parent.serialNum, **({spName: value})):
 
                 # Update the state value
-                self.setDriver("CLISPH", value)
+                self.setDriver("CLISPH", value, uom=self.parent.tempUOM)
 
         else:
             LOGGER.error("Call to API setTemps() failed in SET_SPH command handler.")
@@ -513,7 +493,7 @@ class System(polyinterface.Node):
     hint = [0x01, 0x02, 0x08, 0x00] # Residential/Controller/Sub-system Controller
     serialNum = ""
     hasSpa = False
-    _tempUnit = "F"
+    tempUOM = ISY_TEMP_F_UOM
 
     def __init__(self, controller, primary, addr, name, serialNum=None):
         super(System, self).__init__(controller, addr, addr, name) # send its own address as primary
@@ -528,7 +508,7 @@ class System(polyinterface.Node):
             cData = controller.getCustomData(addr).split(";")
             self.serialNum = cData[0]
             self.hasSpa = (cData[1] == "True")
-            self.tempUnit = cData[2]
+            self.tempUOM = int(cData[2])
 
         else:
             
@@ -557,13 +537,11 @@ class System(polyinterface.Node):
 
         if systemState and systemState["status"] == "Online":
 
-            # set the temperature unit for the system
-            self._tempUnit = systemState["temp_scale"]
-            clitempDriver = next(driver for driver in self.drivers if driver["driver"] == "CLITEMP")
-            if self._tempUnit == "C":
-                clitempDriver["uom"] = ISY_TEMP_C_UOM
+            # set the correct temperature UOM for the system
+            if systemState["temp_scale"] == api.TEMP_SCALE_C:
+                self.tempUOM = ISY_TEMP_C_UOM
             else:
-                clitempDriver["uom"] = ISY_TEMP_F_UOM
+                self.tempUOM = ISY_TEMP_F_UOM
 
             # add device node for main pump with this system as primary, if it doesn't exist
             devAddr = getValidNodeAddress(self.address + "_" + DEVICE_ADDR_PUMP)
@@ -589,8 +567,7 @@ class System(polyinterface.Node):
                         self.address,
                         devAddr,
                         getValidNodeName(DEVICE_LABEL_POOL_HEAT),
-                        api.DEVICE_NAME_POOL_HEAT,
-                        self._tempUnit
+                        api.DEVICE_NAME_POOL_HEAT
                     )
                     self.controller.addNode(node)
 
@@ -622,8 +599,7 @@ class System(polyinterface.Node):
                             self.address,
                             devAddr,
                             getValidNodeName(DEVICE_LABEL_SPA_HEAT),
-                            api.DEVICE_NAME_SPA_HEAT,
-                            self._tempUnit
+                            api.DEVICE_NAME_SPA_HEAT
                         )
                         self.controller.addNode(node)
 
@@ -690,7 +666,7 @@ class System(polyinterface.Node):
                         self.controller.addNode(node)
 
             # store instance variables in polyglot custom data
-            cData = ";".join([self.serialNum, str(self.hasSpa), self._tempUnit])
+            cData = ";".join([self.serialNum, str(self.hasSpa), str(self.tempUOM)])
             self.controller.addCustomData(self.address, cData)
 
             return True
@@ -724,7 +700,7 @@ class System(polyinterface.Node):
             # update the drivers for the system node
             self.setDriver("GV0", mode, True, forceReport)
             
-            self.setDriver("CLITEMP", makeInt(systemState["air_temp"]), True, forceReport)
+            self.setDriver("CLITEMP", makeInt(systemState["air_temp"]), True, forceReport, uom=self.tempUOM)
             self.setDriver("GV1", makeInt(systemState["freeze_protection"]), True, forceReport)
             self.setDriver("GV11", makeInt(systemState["pool_salinity"]) * api.WATER_SALINITY_FACTOR, True, forceReport) 
             self.setDriver("GV12", makeInt(systemState["ph"]) * api.WATER_PH_FACTOR, True, forceReport) 
@@ -749,12 +725,12 @@ class System(polyinterface.Node):
                             node.setDriver("ST", translateState(systemState[node.deviceName]), True, forceReport)
                         elif node.deviceName == api.DEVICE_NAME_POOL_HEAT:
                             node.setDriver("ST", translateState(systemState[api.DEVICE_NAME_POOL_HEAT]), True, forceReport)
-                            node.setDriver("CLISPH", makeInt(systemState["pool_set_point"]), True, forceReport)
-                            node.setDriver("CLITEMP", makeInt(systemState["pool_temp"]), True, forceReport)
+                            node.setDriver("CLISPH", makeInt(systemState["pool_set_point"]), True, forceReport, uom=self.tempUOM)
+                            node.setDriver("CLITEMP", makeInt(systemState["pool_temp"]), True, forceReport, uom=self.tempUOM)
                         elif node.deviceName == api.DEVICE_NAME_SPA_HEAT:
                             node.setDriver("ST", translateState(systemState[api.DEVICE_NAME_SPA_HEAT]), True, forceReport)
-                            node.setDriver("CLISPH", makeInt(systemState["spa_set_point"]), True, forceReport)
-                            node.setDriver("CLITEMP", makeInt(systemState["spa_temp"]), True, forceReport)
+                            node.setDriver("CLISPH", makeInt(systemState["spa_set_point"]), True, forceReport, uom=self.tempUOM)
+                            node.setDriver("CLITEMP", makeInt(systemState["spa_temp"]), True, forceReport, uom=self.tempUOM)
                         elif node.deviceName in devices:
                             if node.id == "DIMMING_LIGHT":
                                 node.setDriver("ST", int(devices[node.deviceName]["subtype"]), True, forceReport)
@@ -821,7 +797,6 @@ class Controller(polyinterface.Controller):
             LOGGER.warning("Missing iAquaLink service credentials in configuration.")
             self.addNotice({"missing_creds": "The iAquaLink service credentials are missing in the configuration. Please check that both the 'username' and 'password' parameter values are specified in the Custom Configuration Parameters and restart the nodeserver."})
             self.addCustomParam({PARAM_USERNAME: "<email address>", PARAM_PASSWORD: "<password>"})
-            self.poly.stop() 
             return
 
         # get session TTL, if in the custom parameters 
@@ -835,12 +810,10 @@ class Controller(polyinterface.Controller):
         if rc == api.LOGIN_BAD_AUTHENTICATION:
             LOGGER.warning("Bad username or password specified.")
             self.addNotice({"bad_auth": "Could not login to the iAquaLink service with the specified credentials. Please check the 'username' and 'password' parameter values in the Custom Configuration Parameters and restart the nodeserver."})
-            self.poly.stop() 
             return
         elif rc == api.LOGIN_ERROR:
             self.addNotice({"login_error":"There was an error connecting to the iAquaLink service. Please check the log files and correct the issue before restarting the nodeserver."})
             LOGGER.error("Error logging into iAquaLink service.")
-            self.poly.stop() 
             return
 
         # load nodes previously saved to the polyglot database
@@ -899,7 +872,9 @@ class Controller(polyinterface.Controller):
 
         LOGGER.info("Discover devices in cmd_discover()...")
         
-        self.discover()
+        # only run if iAquaLink connection is established
+        if self.iaConn is not None:
+            self.discover()
 
     # Update the profile on the ISY
     def cmd_updateProfile(self, command):
