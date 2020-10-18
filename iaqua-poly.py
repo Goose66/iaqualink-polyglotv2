@@ -538,9 +538,9 @@ class System(polyinterface.Node):
 
 
     # Update node states for this and child nodes
-    def cmd_query(self, command):
+    def cmd_update(self, command):
 
-        LOGGER.info("Updating node states for system %s in cmd_query()...", self.name)
+        LOGGER.info("Updating node states for system %s in cmd_update()...", self.name)
         
         # Update all of the node values for the node and child nodes
         self.updateNodeStates(True)
@@ -775,7 +775,7 @@ class System(polyinterface.Node):
         {"driver": "GV13", "value": 0, "uom": ISY_MV_UOM}
     ]
     commands = {
-        "QUERY": cmd_query
+        "UPDATE": cmd_update
     }
 
 # Controller class
@@ -979,7 +979,13 @@ class Controller(polyinterface.Controller):
         self.saveCustomData(self._customData)
 
         # update the driver values for the discovered systems and devices (force report)
-        self.updateNodeStates(True)
+        # Note: It appears that the messaging for the initial updates for newly created nodes either don't make it to 
+        # the ISY or don't get processed. So skip this here to allow the newly added nodes to process and do the initial 
+        # state update in the next shortPoll()
+        #self.updateNodeStates(True)
+
+        # Place the controller in active polling mode
+        self.setActiveMode()
 
     # update the node states for all system and device nodes
     def updateNodeStates(self, forceReport=False):

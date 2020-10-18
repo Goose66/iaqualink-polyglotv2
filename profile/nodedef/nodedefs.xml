@@ -28,7 +28,7 @@
     <cmds>
       <sends />
       <accepts>
-        <cmd id="QUERY" />
+        <cmd id="UPDATE" />
       </accepts>
     </cmds>
   </nodeDef>

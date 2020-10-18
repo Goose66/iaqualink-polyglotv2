@@ -108,7 +108,7 @@ class iAqualinkConnection(object):
         url = api["url"]
 
         # uncomment the next line to dump HTTP request data to log file for debugging
-        self._logger.debug("HTTP %s data: %s", method + " " + url, payload if params is None else params)
+        #self._logger.debug("HTTP %s data: %s", method + " " + url, payload if params is None else params)
 
         try:
             response = self._iaqualinkSession.request(
@@ -133,7 +133,7 @@ class iAqualinkConnection(object):
             raise
 
         # uncomment the next line to dump HTTP response to log file for debugging
-        self._logger.debug("HTTP response code: %d data: %s", response.status_code, response.text)
+        #self._logger.debug("HTTP response code: %d data: %s", response.status_code, response.text)
 
         return response
 
@@ -163,7 +163,7 @@ class iAqualinkConnection(object):
 
                 respData = response.json()
 
-                if response.statu_code == 200:
+                if response.status_code == 200:
 
                     self._sessionID = respData["session_id"]
                     self._authToken = respData["authentication_token"]

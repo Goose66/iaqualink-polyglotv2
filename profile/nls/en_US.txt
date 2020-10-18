@@ -25,6 +25,7 @@ ST-SYS-GV1-NAME = Freeze Protect
 ST-SYS-GV11-NAME = Salinity
 ST-SYS-GV12-NAME = pH
 ST-SYS-GV13-NAME = ORP
+CMD-SYS-UPDATE-NAME = Update State
 ND-DEVICE-NAME = Equipment
 ND-DEVICE-ICON = GenericRsp
 ST-DEV-ST-NAME = Current State

@@ -8,7 +8,7 @@
     "description": "Control yout Jandy® AquaLink® pool controllers and accessories through the iAquaLink™ cloud service.",
     "notice": "",
     "shortPoll": "15",
-    "longPoll": "180",
+    "longPoll": "120",
     "testMode": false,
     "profile_version": "1.0",
     "credits": [

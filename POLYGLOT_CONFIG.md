@@ -1,7 +1,7 @@
 ## iAquaLink NodeServer Configuration
 ##### Advanced Configuration:
 - key: shortPoll, value: polling interval for iAquaLink cloud service in "active" polling mode (defaults to 15 seconds - better to not go more frequent than this).
-- key: longPoll, value: polling interval for iAquaLink cloud service when not in "active" polling mode (defaults to 180 seconds).
+- key: longPoll, value: polling interval for iAquaLink cloud service when not in "active" polling mode (defaults to 120 seconds).
 
 ##### Custom Configuration Parameters:
 - key: username, value: username (email address) for logging into the iAquaLink service (required).
