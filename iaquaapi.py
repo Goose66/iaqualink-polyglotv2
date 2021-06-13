@@ -16,20 +16,19 @@ _LOGGER.setLevel(logging.DEBUG)
 # iAquaLink mobile app REST API
 _API_APP_KEY = "EOOEMOW4YR6QNB07"
 _API_HTTP_HEADERS = {
-    "User-Agent": "iAquaLink/70 CFNetwork/901.1 Darwin/17.6.0",
-    "Content-Type": "application/json",
-    "Accept": "*/*",
+    "user-agent": "okhttp/3.14.7",
+    "content-type": "application/json",
 }
 _API_LOGIN = {
-    "url": "https://support.iaqualink.com/users/sign_in.json",
+    "url": "https://prod.zodiac-io.com/users/v1/login",
     "method": "POST"
 }
 _API_SYSTEMS = {
-    "url": "https://support.iaqualink.com/devices.json",
+    "url": "https://r-api.iaqualink.net/devices.json",
     "method": "GET"
 }
 _API_SESSION = {
-    "url": "https://iaqualink-api.realtime.io/v1/mobile/session.json",
+    "url": "https://p-api.iaqualink.net/v1/mobile/session.json",
     "method": "GET"
 }
 
